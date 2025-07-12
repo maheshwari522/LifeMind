@@ -45,12 +45,6 @@ export function UserNav({
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <Link href="/notes">
-          <DropdownMenuItem className="hover:cursor-pointer hover:bg-gray-200">
-            <Paintbrush2 className="mr-2 h-4 w-4 text-black" />
-            <span className="text-black">Dashboard</span>
-          </DropdownMenuItem>
-        </Link>
         <DropdownMenuItem
           onClick={() => signOut()}
           className="hover:cursor-pointer hover:bg-gray-200"

@@ -15,7 +15,10 @@ import type {
 } from "convex/server";
 import type * as notes from "../notes.js";
 import type * as openai from "../openai.js";
+import type * as priorities from "../priorities.js";
+import type * as reminders from "../reminders.js";
 import type * as utils from "../utils.js";
+import type * as voiceProcessing from "../voiceProcessing.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -28,7 +31,10 @@ import type * as utils from "../utils.js";
 declare const fullApi: ApiFromModules<{
   notes: typeof notes;
   openai: typeof openai;
+  priorities: typeof priorities;
+  reminders: typeof reminders;
   utils: typeof utils;
+  voiceProcessing: typeof voiceProcessing;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

@@ -9,8 +9,8 @@ const montserrat = Montserrat({ subsets: ["latin"] });
 const lato = Lato({ weight: "400", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Notes App",
-  description: "This is an app to take notes.",
+  title: "LifeMind - Your AI Memory Assistant",
+  description: "Remember anything, set smart reminders, and let AI proactively keep you on track with your priorities.",
 };
 
 export default function RootLayout({
