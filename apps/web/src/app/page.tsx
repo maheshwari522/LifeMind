@@ -63,7 +63,7 @@ export default function Home() {
   const extractReminderFromVoice = (text: string) => {
     const patterns = [
       {
-        regex: /remind me to (.+?) (tomorrow|today|next week|next month|\d+ days? from now)/i,
+        regex: /remind me to (.+?) (tomorrow|today|next week|next month|\d+ days? from now)(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?)?/i,
         extract: (matches: RegExpMatchArray) => ({
           text: matches[1].trim(),
           date: getDateFromText(matches[2]),
@@ -72,11 +72,20 @@ export default function Home() {
         })
       },
       {
-        regex: /call (.+?) (tomorrow|today|next week|next month)/i,
+        regex: /call (.+?) (tomorrow|today|next week|next month)(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?)?/i,
         extract: (matches: RegExpMatchArray) => ({
           text: `Call ${matches[1].trim()}`,
           date: getDateFromText(matches[2]),
           time: extractTimeFromText(text) || "15:00",
+          recurring: "none"
+        })
+      },
+      {
+        regex: /schedule (.+?) (tomorrow|today|next week|next month)(?:\s+at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?)?/i,
+        extract: (matches: RegExpMatchArray) => ({
+          text: `Schedule ${matches[1].trim()}`,
+          date: getDateFromText(matches[2]),
+          time: extractTimeFromText(text) || "09:00",
           recurring: "none"
         })
       }
@@ -85,10 +94,13 @@ export default function Home() {
     for (const pattern of patterns) {
       const matches = text.match(pattern.regex);
       if (matches) {
-        return pattern.extract(matches);
+        const result = pattern.extract(matches);
+        console.log('Extracted reminder:', result);
+        return result;
       }
     }
 
+    console.log('No pattern matched for text:', text);
     return null;
   };
 
@@ -171,9 +183,29 @@ export default function Home() {
 
   const handleAddReminder = async (reminder: { text: string; date: string; time: string; recurring: string }) => {
     if (!user?.id) return;
+    console.log('Adding reminder:', reminder);
+    console.log('Date type:', typeof reminder.date, 'Value:', reminder.date);
+    console.log('Time type:', typeof reminder.time, 'Value:', reminder.time);
+    
+    // Validate and format the date
+    let formattedDate = reminder.date;
+    try {
+      const date = new Date(reminder.date);
+      if (!isNaN(date.getTime())) {
+        formattedDate = date.toISOString().split('T')[0];
+        console.log('Formatted date:', formattedDate);
+      } else {
+        console.error('Invalid date:', reminder.date);
+        return;
+      }
+    } catch (error) {
+      console.error('Date parsing error:', error);
+      return;
+    }
+    
     await createReminder({
       text: reminder.text,
-      date: reminder.date,
+      date: formattedDate,
       time: reminder.time,
       recurring: reminder.recurring,
       userId: user.id,
@@ -541,7 +573,17 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="text-sm text-gray-600">
-                          {new Date(reminder.date).toLocaleDateString()} at {reminder.time}
+                          {(() => {
+                            try {
+                              const date = new Date(reminder.date);
+                              if (isNaN(date.getTime())) {
+                                return `Invalid date: ${reminder.date}`;
+                              }
+                              return `${date.toLocaleDateString()} at ${reminder.time}`;
+                            } catch (error) {
+                              return `Date error: ${reminder.date}`;
+                            }
+                          })()}
                         </div>
                       </>
                     )}
@@ -575,9 +617,9 @@ export default function Home() {
                 </div>
                 <div className="text-xs text-gray-500 space-y-1">
                   <div>• &quot;Talk&quot; or &quot;AI&quot; - Open AI assistant</div>
-                  <div>• &quot;Remind me to call mom tomorrow&quot;</div>
-                  <div>• &quot;Call John next week&quot;</div>
-                  <div>• &quot;Schedule meeting with team tomorrow&quot;</div>
+                  <div>• &quot;Remind me to call mom tomorrow 10 am&quot;</div>
+                  <div>• &quot;Call John next week at 3 pm&quot;</div>
+                  <div>• &quot;Schedule meeting with team tomorrow 2:30 pm&quot;</div>
                   <div>• &quot;Add priority to complete project with high priority&quot;</div>
                   <div>• &quot;Urgent task to finish report&quot;</div>
                   <div className="text-xs text-blue-600 mt-2">🔒 Privacy-first, runs locally</div>
